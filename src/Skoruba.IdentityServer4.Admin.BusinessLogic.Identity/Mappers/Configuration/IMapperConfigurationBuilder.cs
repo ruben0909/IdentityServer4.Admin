@@ -1,6 +1,6 @@
-﻿using System;
-using Microsoft.AspNetCore.Identity;
+﻿using MR.AspNet.Identity.EntityFramework6;
 using Skoruba.IdentityServer4.Admin.BusinessLogic.Identity.Dtos.Identity;
+using System;
 
 namespace Skoruba.IdentityServer4.Admin.BusinessLogic.Identity.Mappers.Configuration
 {
@@ -13,14 +13,14 @@ namespace Skoruba.IdentityServer4.Admin.BusinessLogic.Identity.Mappers.Configura
             TUserClaimDto, TRoleClaimDto>()
             where TUserDto : UserDto<TUserDtoKey>
             where TRoleDto : RoleDto<TRoleDtoKey>
-            where TUser : IdentityUser<TKey>
-            where TRole : IdentityRole<TKey>
+            where TUser : IdentityUser<int, IdentityUserLoginInt, IdentityUserRoleInt, IdentityUserClaimInt, IdentityUserTokenInt>
+            where TRole : IdentityRole<int, IdentityUserRoleInt, IdentityRoleClaimInt>
             where TKey : IEquatable<TKey>
-            where TUserClaim : IdentityUserClaim<TKey>
-            where TUserRole : IdentityUserRole<TKey>
-            where TUserLogin : IdentityUserLogin<TKey>
-            where TRoleClaim : IdentityRoleClaim<TKey>
-            where TUserToken : IdentityUserToken<TKey>
+            where TUserClaim : IdentityUserClaimInt
+            where TUserRole : IdentityUserRoleInt
+            where TUserLogin : IdentityUserLoginInt
+            where TRoleClaim : IdentityRoleClaimInt
+            where TUserToken : IdentityUserTokenInt
             where TUsersDto : UsersDto<TUserDto, TUserDtoKey>
             where TRolesDto : RolesDto<TRoleDto, TRoleDtoKey>
             where TUserRolesDto : UserRolesDto<TRoleDto, TUserDtoKey, TRoleDtoKey>

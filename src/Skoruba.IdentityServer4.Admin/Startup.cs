@@ -1,14 +1,18 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+﻿
+
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using MR.AspNet.Identity.EntityFramework6;
+using SantillanaConnect.Domain.Entities.Users;
+using SantillanaConnect.Domain.Model.DataContext;
 using Skoruba.IdentityServer4.Admin.BusinessLogic.Identity.Dtos.Identity;
 using Skoruba.IdentityServer4.Admin.Configuration.Interfaces;
 using Skoruba.IdentityServer4.Admin.EntityFramework.DbContexts;
-using Skoruba.IdentityServer4.Admin.EntityFramework.Identity.Entities.Identity;
 using Skoruba.IdentityServer4.Admin.Helpers;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace Skoruba.IdentityServer4.Admin
 {
@@ -45,11 +49,11 @@ namespace Skoruba.IdentityServer4.Admin
             var rootConfiguration = services.BuildServiceProvider().GetService<IRootConfiguration>();
 
             // Add DbContexts for Asp.Net Core Identity, Logging and IdentityServer - Configuration store and Operational store
-            services.AddDbContexts<AdminIdentityDbContext, IdentityServerConfigurationDbContext, IdentityServerPersistedGrantDbContext, AdminLogDbContext>(HostingEnvironment, Configuration);
+            services.AddDbContexts<MainContext, IdentityServerConfigurationDbContext, IdentityServerPersistedGrantDbContext, AdminLogDbContext>(HostingEnvironment, Configuration);
 
             // Add Asp.Net Core Identity Configuration and OpenIdConnect auth as well
-            services.AddAuthenticationServices<AdminIdentityDbContext, UserIdentity, UserIdentityRole>(HostingEnvironment, rootConfiguration.AdminConfiguration);
-            
+            services.AddAuthenticationServices<MainContext, UserProfile, ApplicationRole>(HostingEnvironment, rootConfiguration.AdminConfiguration);
+
             // Add exception filters in MVC
             services.AddMvcExceptionFilters();
 
@@ -58,25 +62,26 @@ namespace Skoruba.IdentityServer4.Admin
 
             // Add all dependencies for Asp.Net Core Identity
             // If you want to change primary keys or use another db model for Asp.Net Core Identity:
-            services.AddAdminAspNetIdentityServices<AdminIdentityDbContext, IdentityServerPersistedGrantDbContext, UserDto<string>, string, RoleDto<string>, string, string, string,
-                                UserIdentity, UserIdentityRole, string, UserIdentityUserClaim, UserIdentityUserRole,
-                                UserIdentityUserLogin, UserIdentityRoleClaim, UserIdentityUserToken,
-                                UsersDto<UserDto<string>, string>, RolesDto<RoleDto<string>, string>, UserRolesDto<RoleDto<string>, string, string>,
-                                UserClaimsDto<string>, UserProviderDto<string>, UserProvidersDto<string>, UserChangePasswordDto<string>,
-                                RoleClaimsDto<string>, UserClaimDto<string>, RoleClaimDto<string>>();
+            services.AddAdminAspNetIdentityServices<MainContext, IdentityServerPersistedGrantDbContext, UserDto<int>, int, RoleDto<int>, int, int, int,
+                                UserProfile, ApplicationRole, int, IdentityUserClaimInt, IdentityUserRoleInt,
+                                IdentityUserLoginInt, IdentityRoleClaimInt, IdentityUserTokenInt,
+                                UsersDto<UserDto<int>, int>, RolesDto<RoleDto<int>, int>, UserRolesDto<RoleDto<int>, int, int>,
+                                UserClaimsDto<int>, UserProviderDto<int>, UserProvidersDto<int>, UserChangePasswordDto<int>,
+                                RoleClaimsDto<int>, UserClaimDto<int>, RoleClaimDto<int>>();
 
             // Add all dependencies for Asp.Net Core Identity in MVC - these dependencies are injected into generic Controllers
             // Including settings for MVC and Localization
             // If you want to change primary keys or use another db model for Asp.Net Core Identity:
-            services.AddMvcWithLocalization<UserDto<string>, string, RoleDto<string>, string, string, string,
-                UserIdentity, UserIdentityRole, string, UserIdentityUserClaim, UserIdentityUserRole,
-                UserIdentityUserLogin, UserIdentityRoleClaim, UserIdentityUserToken,
-                UsersDto<UserDto<string>, string>, RolesDto<RoleDto<string>, string>, UserRolesDto<RoleDto<string>, string, string>,
-                UserClaimsDto<string>, UserProviderDto<string>, UserProvidersDto<string>, UserChangePasswordDto<string>,
-                RoleClaimsDto<string>>();
+            services.AddMvcWithLocalization<UserDto<int>, int, RoleDto<int>, int, int, int,
+                UserProfile, ApplicationRole, int, IdentityUserClaimInt, IdentityUserRoleInt,
+                IdentityUserLoginInt, IdentityRoleClaimInt, IdentityUserTokenInt,
+                UsersDto<UserDto<int>, int>, RolesDto<RoleDto<int>, int>, UserRolesDto<RoleDto<int>, int, int>,
+                UserClaimsDto<int>, UserProviderDto<int>, UserProvidersDto<int>, UserChangePasswordDto<int>,
+                RoleClaimsDto<int>>();
 
             // Add authorization policies for MVC
             services.AddAuthorizationPolicies();
+
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
@@ -107,6 +112,7 @@ namespace Skoruba.IdentityServer4.Admin
             {
                 routes.MapRoute("default", "{controller=Home}/{action=Index}/{id?}");
             });
+
         }
     }
 }

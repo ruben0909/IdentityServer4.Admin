@@ -1,9 +1,8 @@
-﻿using System.Collections.Generic;
-using IdentityModel;
+﻿using IdentityModel;
 using IdentityServer4;
 using IdentityServer4.Models;
-using Skoruba.IdentityServer4.Admin.Configuration.Constants;
 using Skoruba.IdentityServer4.Admin.Configuration.Interfaces;
+using System.Collections.Generic;
 
 namespace Skoruba.IdentityServer4.Admin.Configuration.IdentityServer
 

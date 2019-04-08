@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
-using IdentityModel;
+﻿using IdentityModel;
 using IdentityServer4.Models;
+using System.Collections.Generic;
 
 namespace Skoruba.IdentityServer4.Admin.Configuration.IdentityServer
 {
@@ -19,7 +19,7 @@ namespace Skoruba.IdentityServer4.Admin.Configuration.IdentityServer
                 new IdentityResource("custom.profile", new[] { JwtClaimTypes.Name, JwtClaimTypes.Email, "location" }),
 
                 // add additional identity resource
-                new IdentityResource("roles", "Roles", new[] { "role" })
+                new IdentityResource("roles", "Roles", new[] { JwtClaimTypes.Role })
             };
         }
 

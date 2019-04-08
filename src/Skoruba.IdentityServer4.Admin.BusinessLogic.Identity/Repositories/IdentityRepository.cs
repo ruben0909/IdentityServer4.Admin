@@ -1,32 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
+using MR.AspNet.Identity.EntityFramework6;
 using Skoruba.IdentityServer4.Admin.BusinessLogic.Identity.Dtos.Enums;
 using Skoruba.IdentityServer4.Admin.BusinessLogic.Identity.Helpers;
 using Skoruba.IdentityServer4.Admin.BusinessLogic.Identity.Repositories.Interfaces;
 using Skoruba.IdentityServer4.Admin.BusinessLogic.Shared.Dtos.Common;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data.Entity;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace Skoruba.IdentityServer4.Admin.BusinessLogic.Identity.Repositories
 {
-    public class IdentityRepository<TIdentityDbContext, TUserKey, TRoleKey, TUser, TRole, TKey, TUserClaim, TUserRole, TUserLogin, TRoleClaim, TUserToken>
-        : IIdentityRepository<TUserKey, TRoleKey, TUser, TRole, TKey, TUserClaim, TUserRole, TUserLogin, TRoleClaim, TUserToken>
-        where TIdentityDbContext : IdentityDbContext<TUser, TRole, TKey, TUserClaim, TUserRole, TUserLogin, TRoleClaim, TUserToken>
-        where TUser : IdentityUser<TKey>
-        where TRole : IdentityRole<TKey>
-        where TKey : IEquatable<TKey>
-        where TUserClaim : IdentityUserClaim<TKey>
-        where TUserRole : IdentityUserRole<TKey>
-        where TUserLogin : IdentityUserLogin<TKey>
-        where TRoleClaim : IdentityRoleClaim<TKey>
-        where TUserToken : IdentityUserToken<TKey>
+    public class IdentityRepository<TIdentityDbContext, TUserKey, TRoleKey, TUser, TRole, TUserClaim, TUserRole, TUserLogin, TRoleClaim, TUserToken>
+        : IIdentityRepository<TUserKey, TRoleKey, TUser, TRole, TUserClaim, TUserRole, TUserLogin, TRoleClaim, TUserToken>
+        where TIdentityDbContext : IdentityDbContext<TUser, TRole, int, IdentityUserLoginInt, IdentityUserRoleInt, IdentityUserClaimInt, IdentityRoleClaimInt, IdentityUserTokenInt>
+        where TUser : IdentityUser<int, IdentityUserLoginInt, IdentityUserRoleInt, IdentityUserClaimInt, IdentityUserTokenInt>
+        where TRole : IdentityRole<int, IdentityUserRoleInt, IdentityRoleClaimInt>
+        where TUserClaim : IdentityUserClaimInt
+        where TUserRole : IdentityUserRoleInt
+        where TUserLogin : IdentityUserLoginInt
+        where TRoleClaim : IdentityRoleClaimInt
+        where TUserToken : IdentityUserTokenInt
     {
         protected readonly TIdentityDbContext DbContext;
         protected readonly UserManager<TUser> UserManager;
@@ -96,10 +95,10 @@ namespace Skoruba.IdentityServer4.Admin.BusinessLogic.Identity.Repositories
         public virtual async Task<PagedList<TUser>> GetRoleUsersAsync(string roleId, string search, int page = 1, int pageSize = 10)
         {
             var id = ConvertRoleKeyFromString(roleId);
-            
+
             var pagedList = new PagedList<TUser>();
             var users = DbContext.Set<TUser>()
-                .Join(DbContext.Set<TUserRole>(), u => u.Id, ur => ur.UserId, (u, ur) => new {u, ur})
+                .Join(DbContext.Set<TUserRole>(), u => u.Id, ur => ur.UserId, (u, ur) => new { u, ur })
                 .Where(t => t.ur.RoleId.Equals(id))
                 .WhereIf(!string.IsNullOrEmpty(search), t => t.u.UserName.Contains(search) || t.u.Email.Contains(search))
                 .Select(t => t.u);
@@ -133,19 +132,19 @@ namespace Skoruba.IdentityServer4.Admin.BusinessLogic.Identity.Repositories
             return pagedList;
         }
 
-        public virtual Task<TRole> GetRoleAsync(TKey roleId)
+        public virtual Task<TRole> GetRoleAsync(int roleId)
         {
             return RoleManager.Roles.Where(x => x.Id.Equals(roleId)).SingleOrDefaultAsync();
         }
 
-        public virtual async Task<(IdentityResult identityResult, TKey roleId)> CreateRoleAsync(TRole role)
+        public virtual async Task<(IdentityResult identityResult, int roleId)> CreateRoleAsync(TRole role)
         {
             var identityResult = await RoleManager.CreateAsync(role);
 
             return (identityResult, role.Id);
         }
 
-        public virtual async Task<(IdentityResult identityResult, TKey roleId)> UpdateRoleAsync(TRole role)
+        public virtual async Task<(IdentityResult identityResult, int roleId)> UpdateRoleAsync(TRole role)
         {
             var thisRole = await RoleManager.FindByIdAsync(role.Id.ToString());
             thisRole.Name = role.Name;
@@ -171,16 +170,16 @@ namespace Skoruba.IdentityServer4.Admin.BusinessLogic.Identity.Repositories
         /// </summary>
         /// <param name="user"></param>
         /// <returns>This method returns identity result and new user id</returns>
-        public virtual async Task<(IdentityResult identityResult, TKey userId)> CreateUserAsync(TUser user)
+        public virtual async Task<(IdentityResult identityResult, int userId)> CreateUserAsync(TUser user)
         {
             var identityResult = await UserManager.CreateAsync(user);
 
             return (identityResult, user.Id);
         }
 
-        public virtual async Task<(IdentityResult identityResult, TKey userId)> UpdateUserAsync(TUser user)
+        public virtual async Task<(IdentityResult identityResult, int userId)> UpdateUserAsync(TUser user)
         {
-            var userIdentity = await UserManager.FindByIdAsync(user.Id.ToString());            
+            var userIdentity = await UserManager.FindByIdAsync(user.Id.ToString());
             Mapper.Map(user, userIdentity);
             var identityResult = await UserManager.UpdateAsync(userIdentity);
 

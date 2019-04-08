@@ -1,36 +1,34 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
+using MR.AspNet.Identity.EntityFramework6;
 using Skoruba.IdentityServer4.Admin.BusinessLogic.Identity.Dtos.Identity;
 using Skoruba.IdentityServer4.Admin.BusinessLogic.Identity.Services.Interfaces;
 using Skoruba.IdentityServer4.Admin.BusinessLogic.Shared.Dtos.Common;
 using Skoruba.IdentityServer4.Admin.Configuration.Constants;
 using Skoruba.IdentityServer4.Admin.ExceptionHandling;
 using Skoruba.IdentityServer4.Admin.Helpers.Localization;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Skoruba.IdentityServer4.Admin.Controllers
 {
     [Authorize(Policy = AuthorizationConsts.AdministrationPolicy)]
     [TypeFilter(typeof(ControllerExceptionFilterAttribute))]
-    public class IdentityController<TUserDto, TUserDtoKey, TRoleDto, TRoleDtoKey, TUserKey, TRoleKey, TUser, TRole, TKey, TUserClaim, TUserRole, TUserLogin, TRoleClaim, TUserToken,
+    public class IdentityController<TUserDto, TUserDtoKey, TRoleDto, TRoleDtoKey, TUserKey, TRoleKey, TUser, TRole, TUserClaim, TUserRole, TUserLogin, TRoleClaim, TUserToken,
             TUsersDto, TRolesDto, TUserRolesDto, TUserClaimsDto,
             TUserProviderDto, TUserProvidersDto, TUserChangePasswordDto, TRoleClaimsDto> : BaseController
         where TUserDto : UserDto<TUserDtoKey>, new()
         where TRoleDto : RoleDto<TRoleDtoKey>, new()
-        where TUser : IdentityUser<TKey>
-        where TRole : IdentityRole<TKey>
-        where TKey : IEquatable<TKey>
-        where TUserClaim : IdentityUserClaim<TKey>
-        where TUserRole : IdentityUserRole<TKey>
-        where TUserLogin : IdentityUserLogin<TKey>
-        where TRoleClaim : IdentityRoleClaim<TKey>
-        where TUserToken : IdentityUserToken<TKey>
+        where TUser : IdentityUser<int, IdentityUserLoginInt, IdentityUserRoleInt, IdentityUserClaimInt, IdentityUserTokenInt>
+        where TRole : IdentityRole<int, IdentityUserRoleInt, IdentityRoleClaimInt>
+        where TUserClaim : IdentityUserClaimInt
+        where TUserRole : IdentityUserRoleInt
+        where TUserLogin : IdentityUserLoginInt
+        where TRoleClaim : IdentityRoleClaimInt
+        where TUserToken : IdentityUserTokenInt
         where TRoleDtoKey : IEquatable<TRoleDtoKey>
         where TUserDtoKey : IEquatable<TUserDtoKey>
         where TUsersDto : UsersDto<TUserDto, TUserDtoKey>
@@ -42,18 +40,18 @@ namespace Skoruba.IdentityServer4.Admin.Controllers
         where TUserChangePasswordDto : UserChangePasswordDto<TUserDtoKey>
         where TRoleClaimsDto : RoleClaimsDto<TRoleDtoKey>
     {
-        private readonly IIdentityService<TUserDto, TUserDtoKey, TRoleDto, TRoleDtoKey, TUserKey, TRoleKey, TUser, TRole, TKey, TUserClaim, TUserRole, TUserLogin, TRoleClaim, TUserToken,
+        private readonly IIdentityService<TUserDto, TUserDtoKey, TRoleDto, TRoleDtoKey, TUserKey, TRoleKey, TUser, TRole, TUserClaim, TUserRole, TUserLogin, TRoleClaim, TUserToken,
             TUsersDto, TRolesDto, TUserRolesDto, TUserClaimsDto,
             TUserProviderDto, TUserProvidersDto, TUserChangePasswordDto, TRoleClaimsDto> _identityService;
-        private readonly IGenericControllerLocalizer<IdentityController<TUserDto, TUserDtoKey, TRoleDto, TRoleDtoKey, TUserKey, TRoleKey, TUser, TRole, TKey, TUserClaim, TUserRole, TUserLogin, TRoleClaim, TUserToken,
+        private readonly IGenericControllerLocalizer<IdentityController<TUserDto, TUserDtoKey, TRoleDto, TRoleDtoKey, TUserKey, TRoleKey, TUser, TRole, TUserClaim, TUserRole, TUserLogin, TRoleClaim, TUserToken,
             TUsersDto, TRolesDto, TUserRolesDto, TUserClaimsDto,
             TUserProviderDto, TUserProvidersDto, TUserChangePasswordDto, TRoleClaimsDto>> _localizer;
 
-        public IdentityController(IIdentityService<TUserDto, TUserDtoKey, TRoleDto, TRoleDtoKey, TUserKey, TRoleKey, TUser, TRole, TKey, TUserClaim, TUserRole, TUserLogin, TRoleClaim, TUserToken,
+        public IdentityController(IIdentityService<TUserDto, TUserDtoKey, TRoleDto, TRoleDtoKey, TUserKey, TRoleKey, TUser, TRole, TUserClaim, TUserRole, TUserLogin, TRoleClaim, TUserToken,
                 TUsersDto, TRolesDto, TUserRolesDto, TUserClaimsDto,
                 TUserProviderDto, TUserProvidersDto, TUserChangePasswordDto, TRoleClaimsDto> identityService,
             ILogger<ConfigurationController> logger,
-            IGenericControllerLocalizer<IdentityController<TUserDto, TUserDtoKey, TRoleDto, TRoleDtoKey, TUserKey, TRoleKey, TUser, TRole, TKey, TUserClaim, TUserRole, TUserLogin, TRoleClaim, TUserToken,
+            IGenericControllerLocalizer<IdentityController<TUserDto, TUserDtoKey, TRoleDto, TRoleDtoKey, TUserKey, TRoleKey, TUser, TRole, TUserClaim, TUserRole, TUserLogin, TRoleClaim, TUserToken,
                 TUsersDto, TRolesDto, TUserRolesDto, TUserClaimsDto,
                 TUserProviderDto, TUserProvidersDto, TUserChangePasswordDto, TRoleClaimsDto>> localizer) : base(logger)
         {
@@ -94,7 +92,7 @@ namespace Skoruba.IdentityServer4.Admin.Controllers
                 return View(role);
             }
 
-            TKey roleId;
+            int roleId;
 
             if (EqualityComparer<TRoleDtoKey>.Default.Equals(role.Id, default))
             {
@@ -142,7 +140,7 @@ namespace Skoruba.IdentityServer4.Admin.Controllers
                 return View(user);
             }
 
-            TKey userId;
+            int userId;
 
             if (EqualityComparer<TUserDtoKey>.Default.Equals(user.Id, default))
             {
@@ -173,7 +171,10 @@ namespace Skoruba.IdentityServer4.Admin.Controllers
         public async Task<IActionResult> UserProfile(TUserDtoKey id)
         {
             var user = await _identityService.GetUserAsync(id.ToString());
-            if (user == null) return NotFound();
+            if (user == null)
+            {
+                return NotFound();
+            }
 
             return View("UserProfile", user);
         }
@@ -181,7 +182,10 @@ namespace Skoruba.IdentityServer4.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> UserRoles(TUserDtoKey id, int? page)
         {
-            if (EqualityComparer<TUserDtoKey>.Default.Equals(id, default)) return NotFound();
+            if (EqualityComparer<TUserDtoKey>.Default.Equals(id, default))
+            {
+                return NotFound();
+            }
 
             var userRoles = await _identityService.BuildUserRolesViewModel(id, page);
 
@@ -246,7 +250,10 @@ namespace Skoruba.IdentityServer4.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> UserClaims(TUserDtoKey id, int? page)
         {
-            if (EqualityComparer<TUserDtoKey>.Default.Equals(id, default)) return NotFound();
+            if (EqualityComparer<TUserDtoKey>.Default.Equals(id, default))
+            {
+                return NotFound();
+            }
 
             var claims = await _identityService.GetUserClaimsAsync(id.ToString(), page ?? 1);
             claims.UserId = id;
@@ -258,10 +265,16 @@ namespace Skoruba.IdentityServer4.Admin.Controllers
         public async Task<IActionResult> UserClaimsDelete(TUserDtoKey id, int claimId)
         {
             if (EqualityComparer<TUserDtoKey>.Default.Equals(id, default)
-            || EqualityComparer<int>.Default.Equals(claimId, default)) return NotFound();
+            || EqualityComparer<int>.Default.Equals(claimId, default))
+            {
+                return NotFound();
+            }
 
             var claim = await _identityService.GetUserClaimAsync(id.ToString(), claimId);
-            if (claim == null) return NotFound();
+            if (claim == null)
+            {
+                return NotFound();
+            }
 
             var userDto = await _identityService.GetUserAsync(id.ToString());
             claim.UserName = userDto.UserName;
@@ -282,7 +295,10 @@ namespace Skoruba.IdentityServer4.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> UserProviders(TUserDtoKey id)
         {
-            if (EqualityComparer<TUserDtoKey>.Default.Equals(id, default)) return NotFound();
+            if (EqualityComparer<TUserDtoKey>.Default.Equals(id, default))
+            {
+                return NotFound();
+            }
 
             var providers = await _identityService.GetUserProvidersAsync(id.ToString());
 
@@ -292,10 +308,16 @@ namespace Skoruba.IdentityServer4.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> UserProvidersDelete(TUserDtoKey id, string providerKey)
         {
-            if (EqualityComparer<TUserDtoKey>.Default.Equals(id, default) || string.IsNullOrEmpty(providerKey)) return NotFound();
+            if (EqualityComparer<TUserDtoKey>.Default.Equals(id, default) || string.IsNullOrEmpty(providerKey))
+            {
+                return NotFound();
+            }
 
             var provider = await _identityService.GetUserProviderAsync(id.ToString(), providerKey);
-            if (provider == null) return NotFound();
+            if (provider == null)
+            {
+                return NotFound();
+            }
 
             return View(provider);
         }
@@ -313,7 +335,10 @@ namespace Skoruba.IdentityServer4.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> UserChangePassword(TUserDtoKey id)
         {
-            if (EqualityComparer<TUserDtoKey>.Default.Equals(id, default)) return NotFound();
+            if (EqualityComparer<TUserDtoKey>.Default.Equals(id, default))
+            {
+                return NotFound();
+            }
 
             var user = await _identityService.GetUserAsync(id.ToString());
             var userDto = new UserChangePasswordDto<TUserDtoKey> { UserId = id, UserName = user.UserName };
@@ -365,7 +390,10 @@ namespace Skoruba.IdentityServer4.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> RoleClaims(TRoleDtoKey id, int? page)
         {
-            if (EqualityComparer<TRoleDtoKey>.Default.Equals(id, default)) return NotFound();
+            if (EqualityComparer<TRoleDtoKey>.Default.Equals(id, default))
+            {
+                return NotFound();
+            }
 
             var claims = await _identityService.GetRoleClaimsAsync(id.ToString(), page ?? 1);
             claims.RoleId = id;
@@ -377,7 +405,10 @@ namespace Skoruba.IdentityServer4.Admin.Controllers
         public async Task<IActionResult> RoleClaimsDelete(TRoleDtoKey id, int claimId)
         {
             if (EqualityComparer<TRoleDtoKey>.Default.Equals(id, default) ||
-                EqualityComparer<int>.Default.Equals(claimId, default)) return NotFound();
+                EqualityComparer<int>.Default.Equals(claimId, default))
+            {
+                return NotFound();
+            }
 
             var claim = await _identityService.GetRoleClaimAsync(id.ToString(), claimId);
 
@@ -397,10 +428,16 @@ namespace Skoruba.IdentityServer4.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> RoleDelete(TRoleDtoKey id)
         {
-            if (EqualityComparer<TRoleDtoKey>.Default.Equals(id, default)) return NotFound();
+            if (EqualityComparer<TRoleDtoKey>.Default.Equals(id, default))
+            {
+                return NotFound();
+            }
 
             var roleDto = await _identityService.GetRoleAsync(id.ToString());
-            if (roleDto == null) return NotFound();
+            if (roleDto == null)
+            {
+                return NotFound();
+            }
 
             return View(roleDto);
         }
@@ -428,10 +465,16 @@ namespace Skoruba.IdentityServer4.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> UserDelete(TUserDtoKey id)
         {
-            if (EqualityComparer<TUserDtoKey>.Default.Equals(id, default)) return NotFound();
+            if (EqualityComparer<TUserDtoKey>.Default.Equals(id, default))
+            {
+                return NotFound();
+            }
 
             var user = await _identityService.GetUserAsync(id.ToString());
-            if (user == null) return NotFound();
+            if (user == null)
+            {
+                return NotFound();
+            }
 
             return View(user);
         }

@@ -1,12 +1,8 @@
-﻿using System;
-using System.Globalization;
-using System.Reflection;
-using IdentityServer4.EntityFramework.Interfaces;
+﻿using IdentityServer4.EntityFramework.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,6 +13,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MR.AspNet.Identity.EntityFramework6;
+using SantillanaConnect.Authentication.Core.Identity.Extensions;
+using SantillanaConnect.Domain.Entities.Users;
+using SantillanaConnect.Domain.Model.Configurations;
+using SantillanaConnect.Domain.Model.DataContext;
+using SantillanaConnect.Domain.Model.Extensions;
 using SendGrid;
 using Serilog;
 using Skoruba.IdentityServer4.STS.Identity.Configuration;
@@ -25,6 +27,9 @@ using Skoruba.IdentityServer4.STS.Identity.Configuration.Constants;
 using Skoruba.IdentityServer4.STS.Identity.Configuration.Intefaces;
 using Skoruba.IdentityServer4.STS.Identity.Helpers.Localization;
 using Skoruba.IdentityServer4.STS.Identity.Services;
+using System;
+using System.Globalization;
+using System.Reflection;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace Skoruba.IdentityServer4.STS.Identity.Helpers
@@ -36,7 +41,7 @@ namespace Skoruba.IdentityServer4.STS.Identity.Helpers
         /// </summary>
         /// <param name="services"></param>
         public static void AddMvcWithLocalization<TUser, TKey>(this IServiceCollection services)
-            where TUser : IdentityUser<TKey>
+            where TUser : IdentityUser<int, IdentityUserLoginInt, IdentityUserRoleInt, IdentityUserClaimInt, IdentityUserTokenInt>
             where TKey : IEquatable<TKey>
         {
             services.AddLocalization(opts => { opts.ResourcesPath = ConfigurationConsts.ResourcesPath; });
@@ -132,35 +137,30 @@ namespace Skoruba.IdentityServer4.STS.Identity.Helpers
         public static void AddAuthenticationServices<TConfigurationDbContext, TPersistedGrantDbContext, TIdentityDbContext, TUserIdentity, TUserIdentityRole>(this IServiceCollection services, IHostingEnvironment hostingEnvironment, IConfiguration configuration, ILogger logger)
             where TPersistedGrantDbContext : DbContext, IPersistedGrantDbContext
             where TConfigurationDbContext : DbContext, IConfigurationDbContext
-            where TIdentityDbContext : DbContext
+            where TIdentityDbContext : IdentityDbContextInt<UserProfile, ApplicationRole>
             where TUserIdentity : class
             where TUserIdentityRole : class
         {
             var loginConfiguration = GetLoginConfiguration(configuration);
             var registrationConfiguration = GetRegistrationConfiguration(configuration);
+            var connectionString = configuration.GetConnectionString(ModelConstants.SantillanaConnectContext);
 
             services
                 .AddSingleton(registrationConfiguration)
                 .AddSingleton(loginConfiguration)
-                .AddScoped<UserResolver<TUserIdentity>>()
-                .AddIdentity<TUserIdentity, TUserIdentityRole>(options =>
-                {
-                    options.User.RequireUniqueEmail = true;
-                })
-                .AddEntityFrameworkStores<TIdentityDbContext>()
-                .AddDefaultTokenProviders();
+                .AddScoped<UserResolver>()
+                .AddCustomIdentity()
+                .Services
+                .AddCustomDependencyInjection();
+            services.AddMainContext(connectionString);
 
-            services.Configure<IISOptions>(iis =>
-            {
-                iis.AuthenticationDisplayName = "Windows";
-                iis.AutomaticAuthentication = false;
-            });
+            services.ConfigureCustomIisOptions();
 
             var authenticationBuilder = services.AddAuthentication();
 
             AddExternalProviders(authenticationBuilder, configuration);
 
-            AddIdentityServer<TConfigurationDbContext, TPersistedGrantDbContext, TUserIdentity>(services, configuration, logger, hostingEnvironment);
+            services.AddCustomIdentityServer(connectionString, hostingEnvironment);
         }
 
         /// <summary>
@@ -217,36 +217,6 @@ namespace Skoruba.IdentityServer4.STS.Identity.Helpers
             return services;
         }
 
-        /// <summary>
-        /// Add configuration for IdentityServer4
-        /// </summary>
-        /// <typeparam name="TUserIdentity"></typeparam>
-        /// <typeparam name="TConfigurationDbContext"></typeparam>
-        /// <typeparam name="TPersistedGrantDbContext"></typeparam>
-        /// <param name="services"></param>
-        /// <param name="configuration"></param>
-        /// <param name="logger"></param>
-        /// <param name="hostingEnvironment"></param>
-        private static void AddIdentityServer<TConfigurationDbContext, TPersistedGrantDbContext, TUserIdentity>(
-            IServiceCollection services,
-            IConfiguration configuration, ILogger logger, IHostingEnvironment hostingEnvironment)
-            where TUserIdentity : class
-            where TPersistedGrantDbContext : DbContext, IPersistedGrantDbContext
-            where TConfigurationDbContext : DbContext, IConfigurationDbContext
-        {
-            var builder = services.AddIdentityServer(options =>
-                {
-                    options.Events.RaiseErrorEvents = true;
-                    options.Events.RaiseInformationEvents = true;
-                    options.Events.RaiseFailureEvents = true;
-                    options.Events.RaiseSuccessEvents = true;
-                })
-                .AddAspNetIdentity<TUserIdentity>()
-                .AddIdentityServerStoresWithDbContexts<TConfigurationDbContext, TPersistedGrantDbContext>(configuration, hostingEnvironment);
-
-            builder.AddCustomSigningCredential(configuration, logger);
-            builder.AddCustomValidationKey(configuration, logger);
-        }
 
         /// <summary>
         /// Add external providers
@@ -278,7 +248,7 @@ namespace Skoruba.IdentityServer4.STS.Identity.Helpers
         /// <param name="hostingEnvironment"></param>
         public static void AddIdentityDbContext<TContext>(this IServiceCollection services,
             IConfiguration configuration, IHostingEnvironment hostingEnvironment)
-            where TContext : DbContext
+            where TContext : MainContext
         {
             if (hostingEnvironment.IsStaging())
             {
@@ -290,18 +260,19 @@ namespace Skoruba.IdentityServer4.STS.Identity.Helpers
             }
         }
 
-        private static void RegisterIdentityDbContextStaging<TContext>(IServiceCollection services) where TContext : DbContext
+        private static void RegisterIdentityDbContextStaging<TContext>(IServiceCollection services) where TContext : MainContext
         {
             var identityDatabaseName = Guid.NewGuid().ToString();
-
-            services.AddDbContext<TContext>(optionsBuilder => optionsBuilder.UseInMemoryDatabase(identityDatabaseName));
+            //TODO: Fix this
+            //services.AddDbContext<TContext>(optionsBuilder => optionsBuilder.UseInMemoryDatabase(identityDatabaseName));
         }
 
         private static void RegisterIdentityDbContext<TContext>(IServiceCollection services, IConfiguration configuration)
-            where TContext : DbContext
+            where TContext : MainContext
         {
             var connectionString = configuration.GetConnectionString(ConfigurationConsts.IdentityDbConnectionStringKey);
-            services.AddDbContext<TContext>(options => options.UseSqlServer(connectionString));
+            services.AddMainContext(connectionString);
+            //services.AddDbContext<TContext>(options => options.UseSqlServer(connectionString));
         }
 
         /// <summary>

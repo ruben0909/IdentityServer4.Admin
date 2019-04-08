@@ -1,20 +1,19 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Identity;
+using MR.AspNet.Identity.EntityFramework6;
+using Skoruba.IdentityServer4.Admin.BusinessLogic.Shared.Dtos.Common;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity;
-using Skoruba.IdentityServer4.Admin.BusinessLogic.Shared.Dtos.Common;
 
 namespace Skoruba.IdentityServer4.Admin.BusinessLogic.Identity.Repositories.Interfaces
 {
-	public interface IIdentityRepository<TUserKey, TRoleKey, TUser, TRole, TKey, TUserClaim, TUserRole, TUserLogin, TRoleClaim, TUserToken>	    
-	    where TUser : IdentityUser<TKey>
-	    where TRole : IdentityRole<TKey>
-	    where TKey : IEquatable<TKey>
-	    where TUserClaim : IdentityUserClaim<TKey>
-	    where TUserRole : IdentityUserRole<TKey>
-	    where TUserLogin : IdentityUserLogin<TKey>
-	    where TRoleClaim : IdentityRoleClaim<TKey>
-	    where TUserToken : IdentityUserToken<TKey>
+    public interface IIdentityRepository<TUserKey, TRoleKey, TUser, TRole, TUserClaim, TUserRole, TUserLogin, TRoleClaim, TUserToken>
+        where TUser : IdentityUser<int, IdentityUserLoginInt, IdentityUserRoleInt, IdentityUserClaimInt, IdentityUserTokenInt>
+        where TRole : IdentityRole<int, IdentityUserRoleInt, IdentityRoleClaimInt>
+        where TUserClaim : IdentityUserClaimInt
+        where TUserRole : IdentityUserRoleInt
+        where TUserLogin : IdentityUserLoginInt
+        where TRoleClaim : IdentityRoleClaimInt
+        where TUserToken : IdentityUserTokenInt
     {
         Task<bool> ExistsUserAsync(string userId);
 
@@ -26,19 +25,19 @@ namespace Skoruba.IdentityServer4.Admin.BusinessLogic.Identity.Repositories.Inte
 
         Task<PagedList<TRole>> GetRolesAsync(string search, int page = 1, int pageSize = 10);
 
-        Task<(IdentityResult identityResult, TKey roleId)> CreateRoleAsync(TRole role);
+        Task<(IdentityResult identityResult, int roleId)> CreateRoleAsync(TRole role);
 
-        Task<TRole> GetRoleAsync(TKey roleId);
+        Task<TRole> GetRoleAsync(int roleId);
 
         Task<List<TRole>> GetRolesAsync();
 
-        Task<(IdentityResult identityResult, TKey roleId)> UpdateRoleAsync(TRole role);
+        Task<(IdentityResult identityResult, int roleId)> UpdateRoleAsync(TRole role);
 
         Task<TUser> GetUserAsync(string userId);
 
-        Task<(IdentityResult identityResult, TKey userId)> CreateUserAsync(TUser user);
+        Task<(IdentityResult identityResult, int userId)> CreateUserAsync(TUser user);
 
-        Task<(IdentityResult identityResult, TKey userId)> UpdateUserAsync(TUser user);
+        Task<(IdentityResult identityResult, int userId)> UpdateUserAsync(TUser user);
 
         Task<IdentityResult> DeleteUserAsync(string userId);
 

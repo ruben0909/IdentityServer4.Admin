@@ -3,8 +3,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using SantillanaConnect.Domain.Entities.Users;
+using SantillanaConnect.Domain.Model.DataContext;
 using Skoruba.IdentityServer4.Admin.EntityFramework.DbContexts;
-using Skoruba.IdentityServer4.Admin.EntityFramework.Identity.Entities.Identity;
 using Skoruba.IdentityServer4.STS.Identity.Helpers;
 
 namespace Skoruba.IdentityServer4.STS.Identity
@@ -38,18 +39,18 @@ namespace Skoruba.IdentityServer4.STS.Identity
             services.ConfigureRootConfiguration(Configuration);
 
             // Add DbContext for Asp.Net Core Identity
-            services.AddIdentityDbContext<AdminIdentityDbContext>(Configuration, Environment);
+            services.AddIdentityDbContext<MainContext>(Configuration, Environment);
 
             // Add email senders which is currently setup for SendGrid and SMTP
             services.AddEmailSenders(Configuration);
 
             // Add services for authentication, including Identity model, IdentityServer4 and external providers
-            services.AddAuthenticationServices<IdentityServerConfigurationDbContext, IdentityServerPersistedGrantDbContext, AdminIdentityDbContext, UserIdentity, UserIdentityRole>(Environment, Configuration, Logger);
+            services.AddAuthenticationServices<IdentityServerConfigurationDbContext, IdentityServerPersistedGrantDbContext, MainContext, UserProfile, ApplicationRole>(Environment, Configuration, Logger);
 
             // Add all dependencies for Asp.Net Core Identity in MVC - these dependencies are injected into generic Controllers
             // Including settings for MVC and Localization
             // If you want to change primary keys or use another db model for Asp.Net Core Identity:
-            services.AddMvcWithLocalization<UserIdentity, string>();
+            services.AddMvcWithLocalization<UserProfile, int>();
 
             // Add authorization policies for MVC
             services.AddAuthorizationPolicies();

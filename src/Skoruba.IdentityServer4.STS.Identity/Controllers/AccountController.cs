@@ -4,11 +4,6 @@
 // Original file: https://github.com/IdentityServer/IdentityServer4.Samples
 // Modified by Jan Škoruba
 
-using System;
-using System.Linq;
-using System.Security.Claims;
-using System.Text.Encodings.Web;
-using System.Threading.Tasks;
 using IdentityModel;
 using IdentityServer4.Events;
 using IdentityServer4.Extensions;
@@ -20,23 +15,29 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
+using SantillanaConnect.Authentication.Core.Identity.Identity;
+using SantillanaConnect.Domain.Entities.Users;
 using Skoruba.IdentityServer4.STS.Identity.Configuration;
 using Skoruba.IdentityServer4.STS.Identity.Helpers;
 using Skoruba.IdentityServer4.STS.Identity.Helpers.Localization;
 using Skoruba.IdentityServer4.STS.Identity.ViewModels.Account;
+using System;
+using System.Linq;
+using System.Security.Claims;
+using System.Text.Encodings.Web;
+using System.Threading.Tasks;
 
 namespace Skoruba.IdentityServer4.STS.Identity.Controllers
 {
     [SecurityHeaders]
-    [Authorize]    
+    [Authorize]
     public class AccountController<TUser, TKey> : Controller
-        where TUser : IdentityUser<TKey>, new()
+        where TUser : UserProfile, new()
         where TKey : IEquatable<TKey>
     {
-        private readonly UserResolver<TUser> _userResolver;
-        private readonly UserManager<TUser> _userManager;
-        private readonly SignInManager<TUser> _signInManager;
+        private readonly UserResolver _userResolver;
+        private readonly IdSrvUserManager _userManager;
+        private readonly IdSrvSignInManager _signInManager;
         private readonly IIdentityServerInteractionService _interaction;
         private readonly IClientStore _clientStore;
         private readonly IAuthenticationSchemeProvider _schemeProvider;
@@ -47,9 +48,9 @@ namespace Skoruba.IdentityServer4.STS.Identity.Controllers
         private readonly RegisterConfiguration _registerConfiguration;
 
         public AccountController(
-            UserResolver<TUser> userResolver,
-            UserManager<TUser> userManager,
-            SignInManager<TUser> signInManager,
+            UserResolver userResolver,
+            IdSrvUserManager userManager,
+            IdSrvSignInManager signInManager,
             IIdentityServerInteractionService interaction,
             IClientStore clientStore,
             IAuthenticationSchemeProvider schemeProvider,
@@ -130,7 +131,8 @@ namespace Skoruba.IdentityServer4.STS.Identity.Controllers
             if (ModelState.IsValid)
             {
                 var user = await _userResolver.GetUserAsync(model.Username);
-                if (user != default(TUser)) { 
+                if (user != default(TUser))
+                {
                     var result = await _signInManager.PasswordSignInAsync(user.UserName, model.Password, model.RememberLogin, lockoutOnFailure: true);
                     if (result.Succeeded)
                     {
@@ -531,8 +533,11 @@ namespace Skoruba.IdentityServer4.STS.Identity.Controllers
         [HttpGet]
         [AllowAnonymous]
         public IActionResult Register(string returnUrl = null)
-        {            
-            if (!_registerConfiguration.Enabled) return View("RegisterFailure");
+        {
+            if (!_registerConfiguration.Enabled)
+            {
+                return View("RegisterFailure");
+            }
 
             ViewData["ReturnUrl"] = returnUrl;
 
@@ -546,7 +551,10 @@ namespace Skoruba.IdentityServer4.STS.Identity.Controllers
         {
             ViewData["ReturnUrl"] = returnUrl;
 
-            if (!ModelState.IsValid) return View(model);
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
 
             var user = new TUser
             {

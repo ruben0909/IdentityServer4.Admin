@@ -1,7 +1,8 @@
 ﻿@using IdentityServer4.Extensions
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.Mvc.Localization
-@using Skoruba.IdentityServer4.Admin.EntityFramework.Identity.Entities.Identity
+@using SantillanaConnect.Authentication.Core.Identity.Identity
+@using SantillanaConnect.Domain.Entities.Users
 @inject IViewLocalizer Localizer
 @{
     string name = null;
@@ -11,7 +12,7 @@
     }
 }
 
-@inject SignInManager<UserIdentity> SignInManager
+@inject IdSrvSignInManager SignInManager
 @{
     var hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
 }

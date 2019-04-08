@@ -1,17 +1,17 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using IdentityServer4.EntityFramework.Mappers;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using IdentityServer4.EntityFramework.Mappers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using SantillanaConnect.Authentication.Core.Identity.Identity;
+using SantillanaConnect.Domain.Entities.Users;
+using SantillanaConnect.Domain.Model.Extensions;
 using Skoruba.IdentityServer4.Admin.Configuration.Constants;
 using Skoruba.IdentityServer4.Admin.Configuration.Identity;
 using Skoruba.IdentityServer4.Admin.Configuration.IdentityServer;
 using Skoruba.IdentityServer4.Admin.Configuration.Interfaces;
 using Skoruba.IdentityServer4.Admin.EntityFramework.Interfaces;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Skoruba.IdentityServer4.Admin.Helpers
 {
@@ -22,24 +22,22 @@ namespace Skoruba.IdentityServer4.Admin.Helpers
         /// https://github.com/skoruba/IdentityServer4.Admin#ef-core--data-access
         /// </summary>
         /// <param name="host"></param>      
-        public static async Task EnsureSeedData<TIdentityServerDbContext, TIdentityDbContext, TPersistedGrantDbContext, TLogDbContext, TUser, TRole>(IWebHost host)
+        public static async Task EnsureSeedData<TIdentityServerDbContext, TIdentityDbContext, TPersistedGrantDbContext, TLogDbContext, TUser, TRole>(System.IServiceProvider sp)
             where TIdentityServerDbContext : DbContext, IAdminConfigurationDbContext
-            where TIdentityDbContext : DbContext
+            where TIdentityDbContext : IdentityDbContextInt<UserProfile, ApplicationRole>
             where TPersistedGrantDbContext : DbContext, IAdminPersistedGrantDbContext
             where TLogDbContext : DbContext, IAdminLogDbContext
-            where TUser : IdentityUser, new()
-            where TRole : IdentityRole, new()
         {
-            using (var serviceScope = host.Services.CreateScope())
+            using (var serviceScope = sp.CreateScope())
             {
                 var services = serviceScope.ServiceProvider;
                 await EnsureDatabasesMigrated<TIdentityDbContext, TIdentityServerDbContext, TPersistedGrantDbContext, TLogDbContext>(services);
-                await EnsureSeedData<TIdentityServerDbContext, TUser, TRole>(services);
+                await EnsureSeedData<TIdentityServerDbContext>(services);
             }
         }
 
         public static async Task EnsureDatabasesMigrated<TIdentityDbContext, TConfigurationDbContext, TPersistedGrantDbContext, TLogDbContext>(IServiceProvider services)
-            where TIdentityDbContext : DbContext
+            where TIdentityDbContext : IdentityDbContextInt<UserProfile, ApplicationRole>
             where TPersistedGrantDbContext : DbContext
             where TConfigurationDbContext : DbContext
             where TLogDbContext : DbContext
@@ -51,10 +49,10 @@ namespace Skoruba.IdentityServer4.Admin.Helpers
                     await context.Database.MigrateAsync();
                 }
 
-                using (var context = scope.ServiceProvider.GetRequiredService<TIdentityDbContext>())
-                {
-                    await context.Database.MigrateAsync();
-                }
+                //using (var context = scope.ServiceProvider.GetRequiredService<TIdentityDbContext>())
+                //{
+                //    await context.Database.
+                //}
 
                 using (var context = scope.ServiceProvider.GetRequiredService<TConfigurationDbContext>())
                 {
@@ -68,16 +66,14 @@ namespace Skoruba.IdentityServer4.Admin.Helpers
             }
         }
 
-        public static async Task EnsureSeedData<TIdentityServerDbContext, TUser, TRole>(IServiceProvider serviceProvider)
+        public static async Task EnsureSeedData<TIdentityServerDbContext>(IServiceProvider serviceProvider)
         where TIdentityServerDbContext : DbContext, IAdminConfigurationDbContext
-        where TUser : IdentityUser, new()
-        where TRole : IdentityRole, new()
         {
             using (var scope = serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<TIdentityServerDbContext>();
-                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<TUser>>();
-                var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<TRole>>();
+                var userManager = scope.ServiceProvider.GetRequiredService<IdSrvUserManager>();
+                var roleManager = scope.ServiceProvider.GetRequiredService<IdSrvRoleManager>();
                 var rootConfiguration = scope.ServiceProvider.GetRequiredService<IRootConfiguration>();
 
                 await EnsureSeedIdentityServerData(context, rootConfiguration.AdminConfiguration);
@@ -88,23 +84,26 @@ namespace Skoruba.IdentityServer4.Admin.Helpers
         /// <summary>
         /// Generate default admin user / role
         /// </summary>
-        private static async Task EnsureSeedIdentityData<TUser, TRole>(UserManager<TUser> userManager,
-            RoleManager<TRole> roleManager)
-            where TUser : IdentityUser, new()
-            where TRole : IdentityRole, new()
+        private static async Task EnsureSeedIdentityData(IdSrvUserManager userManager,
+            IdSrvRoleManager roleManager)
         {
             // Create admin role
             if (!await roleManager.RoleExistsAsync(AuthorizationConsts.AdministrationRole))
             {
-                var role = new TRole { Name = AuthorizationConsts.AdministrationRole };
+                var role = new ApplicationRole() { Name = AuthorizationConsts.AdministrationRole };
 
                 await roleManager.CreateAsync(role);
             }
 
             // Create admin user
-            if (await userManager.FindByNameAsync(Users.AdminUserName) != null) return;
+            var user = await userManager.FindByNameAsync(Users.AdminUserName);
 
-            var user = new TUser
+            if (user != null)
+            {
+                await userManager.DeleteAsync(user);
+            }
+
+            user = new UserProfile()
             {
                 UserName = Users.AdminUserName,
                 Email = Users.AdminEmail,

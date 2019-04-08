@@ -1,31 +1,30 @@
-﻿using System;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-using IdentityServer4.EntityFramework.Entities;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using IdentityServer4.EntityFramework.Entities;
 using Microsoft.EntityFrameworkCore;
+using MR.AspNet.Identity.EntityFramework6;
 using Skoruba.IdentityServer4.Admin.BusinessLogic.Identity.Dtos.Enums;
 using Skoruba.IdentityServer4.Admin.BusinessLogic.Identity.Helpers;
 using Skoruba.IdentityServer4.Admin.BusinessLogic.Identity.Repositories.Interfaces;
 using Skoruba.IdentityServer4.Admin.BusinessLogic.Shared.Dtos.Common;
 using Skoruba.IdentityServer4.Admin.EntityFramework.Entities;
 using Skoruba.IdentityServer4.Admin.EntityFramework.Interfaces;
+using System;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace Skoruba.IdentityServer4.Admin.BusinessLogic.Identity.Repositories
 {
     public class PersistedGrantAspNetIdentityRepository<TIdentityDbContext, TPersistedGrantDbContext, TUser, TRole, TKey, TUserClaim, TUserRole, TUserLogin, TRoleClaim, TUserToken> : IPersistedGrantAspNetIdentityRepository
-        where TIdentityDbContext : IdentityDbContext<TUser, TRole, TKey, TUserClaim, TUserRole, TUserLogin, TRoleClaim, TUserToken>
+        where TIdentityDbContext : IdentityDbContext<TUser, TRole, int, IdentityUserLoginInt, IdentityUserRoleInt, IdentityUserClaimInt, IdentityRoleClaimInt, IdentityUserTokenInt>
         where TPersistedGrantDbContext : DbContext, IAdminPersistedGrantDbContext
-        where TUser : IdentityUser<TKey>
-        where TRole : IdentityRole<TKey>
+        where TUser : IdentityUser<int, IdentityUserLoginInt, IdentityUserRoleInt, IdentityUserClaimInt, IdentityUserTokenInt>
+        where TRole : IdentityRole<int, IdentityUserRoleInt, IdentityRoleClaimInt>
         where TKey : IEquatable<TKey>
-        where TUserClaim : IdentityUserClaim<TKey>
-        where TUserRole : IdentityUserRole<TKey>
-        where TUserLogin : IdentityUserLogin<TKey>
-        where TRoleClaim : IdentityRoleClaim<TKey>
-        where TUserToken : IdentityUserToken<TKey>
+        where TUserClaim : IdentityUserClaimInt
+        where TUserRole : IdentityUserRoleInt
+        where TUserLogin : IdentityUserLoginInt
+        where TRoleClaim : IdentityRoleClaimInt
+        where TUserToken : IdentityUserTokenInt
     {
         protected readonly TIdentityDbContext IdentityDbContext;
         protected readonly TPersistedGrantDbContext PersistedGrantDbContext;

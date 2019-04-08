@@ -1,21 +1,22 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using SantillanaConnect.Authentication.Core.Identity.Identity;
+using SantillanaConnect.Domain.Entities.Users;
 using Skoruba.IdentityServer4.STS.Identity.Configuration;
 using System.Threading.Tasks;
 
 namespace Skoruba.IdentityServer4.STS.Identity.Helpers
 {
-    public class UserResolver<TUser> where TUser : class
+    public class UserResolver
     {
-        private readonly UserManager<TUser> _userManager;
+        private readonly IdSrvUserManager _userManager;
         private readonly LoginResolutionPolicy _policy;
 
-        public UserResolver(UserManager<TUser> userManager, LoginConfiguration configuration)
+        public UserResolver(IdSrvUserManager userManager, LoginConfiguration configuration)
         {
             _userManager = userManager;
             _policy = configuration.ResolutionPolicy;
         }
 
-        public async Task<TUser> GetUserAsync(string login)
+        public async Task<UserProfile> GetUserAsync(string login)
         {
             switch (_policy)
             {
