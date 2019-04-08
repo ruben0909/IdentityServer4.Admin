@@ -1,0 +1,1 @@
+﻿Remove this package from SC and reference Nuget when version of it > 1.0.0-beta6 will be puclished

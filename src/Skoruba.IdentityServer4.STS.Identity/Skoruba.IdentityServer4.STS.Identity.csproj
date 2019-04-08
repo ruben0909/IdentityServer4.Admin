@@ -32,7 +32,6 @@
 		<PackageReference Include="Serilog.Sinks.MSSqlServer" Version="5.1.2" />
     <PackageReference Include="Microsoft.AspNetCore.Server.IISIntegration" Version="2.2.1" />
     <PackageReference Include="Skoruba.IdentityServer4.Admin.EntityFramework" Version="1.0.0-beta6" />
-    <PackageReference Include="Skoruba.IdentityServer4.Admin.EntityFramework.DbContexts" Version="1.0.0-beta5" />
     <PackageReference Include="Skoruba.IdentityServer4.Admin.EntityFramework.Identity" Version="1.0.0-beta5" />
 	</ItemGroup>
 
@@ -40,6 +39,7 @@
 		<ProjectReference Include="..\..\..\SC\source\Domain.Entities\SantillanaConnect.Domain.Entities.csproj" />
 		<ProjectReference Include="..\..\..\SC\source\Domain.Model\SantillanaConnect.Domain.Model.csproj" />
 		<ProjectReference Include="..\..\..\SC\source\SantillanaConnect.Authentication.Core.Identity\SantillanaConnect.Authentication.Core.Identity.csproj" />
+		<ProjectReference Include="..\Skoruba.IdentityServer4.Admin.EntityFramework.DbContexts\Skoruba.IdentityServer4.Admin.EntityFramework.DbContexts.csproj" />
 	</ItemGroup>
 
 </Project>

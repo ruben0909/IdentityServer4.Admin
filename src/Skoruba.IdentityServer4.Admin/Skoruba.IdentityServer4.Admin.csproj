@@ -27,7 +27,6 @@
     <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.1.1" />
     <PackageReference Include="Skoruba.IdentityServer4.Admin.BusinessLogic" Version="1.0.0-beta6" />
     <PackageReference Include="Skoruba.IdentityServer4.Admin.BusinessLogic.Shared" Version="1.0.0-beta6" />
-    <PackageReference Include="Skoruba.IdentityServer4.Admin.EntityFramework.DbContexts" Version="1.0.0-beta5" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -108,6 +107,7 @@
 	<ItemGroup>
 	  <ProjectReference Include="..\..\..\SC\source\SantillanaConnect.Authentication.Core.Identity\SantillanaConnect.Authentication.Core.Identity.csproj" />
 	  <ProjectReference Include="..\Skoruba.IdentityServer4.Admin.BusinessLogic.Identity\Skoruba.IdentityServer4.Admin.BusinessLogic.Identity.csproj" />
+	  <ProjectReference Include="..\Skoruba.IdentityServer4.Admin.EntityFramework.DbContexts\Skoruba.IdentityServer4.Admin.EntityFramework.DbContexts.csproj" />
 	</ItemGroup>
 
 </Project>
