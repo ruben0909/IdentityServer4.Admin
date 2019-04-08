@@ -18,6 +18,9 @@
 		<PackageReference Include="MR.AspNet.Identity.EntityFramework6.Models" Version="3.0.6" />
 		<PackageReference Include="Skoruba.IdentityServer4.Admin.BusinessLogic.Shared" Version="1.0.0-beta6" />
 		<PackageReference Include="Skoruba.IdentityServer4.Admin.EntityFramework" Version="1.0.0-beta6" />
+		<PackageReference Include="MR.AspNet.Identity.EntityFramework6" Version="3.0.6" />
+		<PackageReference Include="MR.AspNet.Identity.EntityFramework6.Key.Int" Version="3.0.6" />
+		<PackageReference Include="MR.AspNet.Identity.EntityFramework6.Models" Version="3.0.6" />
 	</ItemGroup>
 
 	<ItemGroup>
